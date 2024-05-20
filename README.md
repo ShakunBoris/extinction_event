@@ -1,4 +1,4 @@
-# just run from extinction_event.py
+# just run from extinction_event.py AFTER pip install -r requirements.txt
 A* search for finding paths      
 nothing interesting beside astar yet     
 see astar.py     

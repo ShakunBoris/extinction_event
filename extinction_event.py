@@ -1,15 +1,12 @@
 import copy
 import random
 import pgzero
-import pgzero.actor
 import pgzrun # to run with play button
-from pgzero.actor import Actor
+from pgzero.actor import Actor as PGZActor
 import pygame
-import helper
-from pgzero.clock import clock
-from pgzero.animation import animate
+
 import astar 
-# from ee import Subject
+
 
 # + TODO CLASS OBJECT INHERIT FROM ACTOR (RENAME TO GAME_OBJECT)
 # + TODO loot 
@@ -46,7 +43,7 @@ with open('original_maze.txt', 'w') as file:
         file.write(str(line)+ '\n')
 
 
-class Weapon(pgzero.actor.Actor):
+class Weapon(PGZActor):
     available_weapons = {
         'saber': {'damage': 10, 'range': 1},
         'gun': {'damage': 15, 'range': 3},
@@ -99,7 +96,7 @@ class Loot:
         # return 'STR __str__'
         return f'{self.items}'
             
-class Actor(pgzero.actor.Actor):
+class Actor(PGZActor):
     actors = []
     states = {'stand': '_stand_', 
               'walk': '_walk_',
@@ -151,9 +148,10 @@ class Actor(pgzero.actor.Actor):
         self._set_direction(new_x, new_y)
         if self._can_move_to(new_x, new_y):  
             if  0 <=new_x <= WIDTH - TILE_SIZE and 0 <=new_y <= HEIGHT - TILE_SIZE:    
-                animate(self, 
-                        duration=0.1, 
-                        pos = (new_x, new_y))
+                # animate(self, 
+                #         duration=0.1, 
+                #         pos = (new_x, new_y))
+                self.pos = (new_x, new_y)
             else:
                 if self._can_move_to(int(new_x % WIDTH),int( new_y % HEIGHT)):
 
@@ -163,12 +161,9 @@ class Actor(pgzero.actor.Actor):
             self.pos = (int(self.x % WIDTH), int(self.y % HEIGHT))
             self.loot.x = new_x
             self.loot.y = new_y
-            self._collect_loot(new_x, new_y)
+            self._collect_loot(self.pos[0], self.pos[1])
             return 0
-        # else:
-        #     if self.player:                
-        #         return 1
-                # MOUSE_CONTROL = False
+
 
     def _collect_loot(self, new_x, new_y):
         for loot in Loot.all_loot:
@@ -358,7 +353,7 @@ class NPC(Actor):
         super().__del__()
         # print(f'NPC {self} deleted')
 
-class Object(pgzero.actor.Actor):
+class Object(PGZActor):
     images = ['wall']
     objects = []
     def __init__(self, x, y, image:str) -> None:
@@ -451,8 +446,6 @@ def draw():
 
 def update(dt):
     global GAME_ON
-    if keyboard.f:
-        pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN)
     if keyboard.escape:
         exit()
         

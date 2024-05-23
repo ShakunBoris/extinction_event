@@ -218,7 +218,7 @@ class NPC(Actor):
         self.hunter: bool = hunter
         self.prey: bool = prey
         self.search_target = None
-        clock.schedule_interval(self.walk_path, 0.5)
+        # clock.schedule_interval(self.walk_path, 0.5)
         NPC.npcs.append(self)
         
     def _calculate_new_path_to(self, destination):

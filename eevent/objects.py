@@ -74,6 +74,7 @@ class Object(PGZActor):
         Object.objects.append(self)
     
     def __calculate_collision(self):
+        global TILE_SIZE
         c = []
         for i in range(int(self.x), int(self.x+TILE_SIZE), 1):
             for j in range(int(self.y), int(self.y+TILE_SIZE), 1):

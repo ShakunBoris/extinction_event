@@ -1,4 +1,6 @@
 import random
+# from .objects import *
+
 
 TILE_SIZE = 16
 WIDTH = TILE_SIZE * 32

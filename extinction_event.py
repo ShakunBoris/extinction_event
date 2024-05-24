@@ -178,10 +178,5 @@ while initial_collision_check:
                     a.pos = (a.x+TILE_SIZE, a.y)
                     initial_collision_check = True
                     
-# for a in Actor.actors:
-#     clock.schedule_interval(a.cycle_animation, 0.1)
-#     if a.hunter:
-#         clock.schedule_interval(a.walk_path, 0.5)
-# clock.schedule_interval(eric.cycle_animation, 0.1)
         
 pgzrun.go() # self run

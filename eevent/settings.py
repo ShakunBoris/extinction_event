@@ -1,4 +1,6 @@
 import random
+import os
+import ast
 # from .objects import *
 
 
@@ -17,5 +19,13 @@ GAME_ON = False
 
 tiles = ['empty', 'wall']
 maze = []
-for i in range(0, HEIGHT, TILE_SIZE):
-        maze.append(random.choices([0,1], weights=[5, 1], k=int(WIDTH/TILE_SIZE)))
+MAZE_FILE = 'maze_lvl_0.txt'
+if os.path.exists(MAZE_FILE):
+    with open(MAZE_FILE) as file:
+        for line in file:
+            maze.append(ast.literal_eval(line))
+            # maze.append(list(map(int, line.strip().strip('][').split(', '))))
+else:
+    for i in range(0, HEIGHT, TILE_SIZE):
+        maze.append(random.choices([0, 1], weights=[
+                    5, 1], k=int(WIDTH/TILE_SIZE)))

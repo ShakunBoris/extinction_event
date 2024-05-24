@@ -27,7 +27,7 @@ class Loot:
 
     def __init__(self, x = 360, y = 360, items=None):
         if items is None or not isinstance(items, dict):
-            items = {'money': 100}  # По умолчанию, если items не задан
+            items = {'money': 300}  # По умолчанию, если items не задан
 
         self.x = x
         self.y = y

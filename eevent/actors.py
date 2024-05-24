@@ -18,13 +18,14 @@ class Actor(PGZActor):
                  alive:bool=False,
                  hp:int = 100,
                  anim_stand=None, 
+                 loot = dict | None,
                  **kwargs ): 
         super().__init__(*args, **kwargs)
 
         self.alive: bool = alive
         self.hp = hp
         
-        self.loot = Loot(self.x, self.y)
+        self.loot = Loot(self.x, self.y, loot)
         
         self.name = copy.copy(self._image_name)
         self.state = 'stand'

@@ -44,7 +44,7 @@ def grid():
 
 tmp_maze = load_maze()
 
-
+mouse_pos = (0, 0)
 def draw():
     global tmp_maze
     screen.clear()
@@ -60,6 +60,8 @@ def draw():
                       anchor=('left', 'top')).draw()
 
     grid()
+    screen.draw.text(f'Mouse: {mouse_pos}, ({int(mouse_pos[0]/16)}, {int(mouse_pos[1]/16)})', (256, 16), color='red', alpha=0.5)
+    
     screen.draw.text('1-empty floor', (16, 16), color='red', alpha=0.5)
     screen.draw.text('2-wall', (16, 32), color='red', alpha=0.5)
     screen.draw.text('\'s\'- SAVE MAP maze_lvl_0.txt',
@@ -85,6 +87,8 @@ def on_mouse_up(pos):
     mouse_down = False
 
 def on_mouse_move(pos):
+    global mouse_pos
+    mouse_pos = (pos[0] - pos[0] % TILE_SIZE, pos[1] - pos[1] % TILE_SIZE)
     if mouse_down:
         update_maze(pos)
 

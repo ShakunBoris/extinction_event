@@ -8,6 +8,9 @@ TILE_SIZE = 16
 WIDTH = TILE_SIZE * 32
 HEIGHT = TILE_SIZE * 32
 
+# Game basic goal
+BASE_XBOX_PRICE = 500
+
 COLOR_GRAY = (128, 128, 128)
 
 TIMER = 0
@@ -20,6 +23,8 @@ GAME_ON = False
 tiles = ['empty', 'wall']
 maze = []
 MAZE_FILE = 'maze_lvl_0.txt'
+
+
 if os.path.exists(MAZE_FILE):
     with open(MAZE_FILE) as file:
         for line in file:

@@ -5,9 +5,97 @@ from eevent.settings import *
 from eevent.actors import *
 from eevent.objects import *
 
+# HELPERS 
+def grid():
+
+    for i in range(0, HEIGHT, 16):
+        screen.draw.line((0, i), (WIDTH, i), COLOR_GRAY)
+        screen.draw.text(f'{i}', (0, i), color="black", fontsize=12, anchor=(0,0))
+    for i in range(0, WIDTH, 16):
+        screen.draw.line((i,0), (i,HEIGHT), COLOR_GRAY)
+        screen.draw.text(f'{i}', (i, 0), color="black", fontsize=12, anchor=(0,0))
+
+# # Генератор для циклического перебора цветов
+# def color_cycle():
+#     colors = ['green', 'red', 'blue', 'yellow', 'purple', 'orange']
+#     while True:
+#         for color in colors:
+#             yield color
+
+# # Создаем генератор
+# color_generator = color_cycle()
+
+def helper_draw_enemy_paths():
+    for npc in NPC.npcs:
+        if npc.hunter and npc.path and npc.path != [] or npc.path != None:
+            # color = next(color_generator)
+            color = {'eric': 'green','dylan':'purple'}
+            for cell in npc.path:
+                r = Rect(cell[1] * TILE_SIZE, cell[0] * TILE_SIZE, TILE_SIZE-1, TILE_SIZE-1)
+                screen.draw.rect(r, color[npc.name])        
+                
+def draw_actor_aoe(actor):
+    
+    min_x = min(coord[0] for coord in actor.area_of_effect)
+    min_y = min(coord[1] for coord in actor.area_of_effect)
+    max_x = max(coord[0] for coord in actor.area_of_effect)
+    max_y = max(coord[1] for coord in actor.area_of_effect)
+    aoe_rect = Rect(min_x, min_y, max_x - min_x, max_y - min_y)
+    return screen.draw.rect(aoe_rect, 'red')
+
+def check_fix_spawn_pos():
+    initial_collision_check = True
+    while initial_collision_check:
+        initial_collision_check = False
+        for a in Actor.actors:
+            if a.alive:
+                for o in Object.objects:
+                    # if a.colliderect(o):
+                    if a.pos == o.pos:
+                        a.pos = (a.x+TILE_SIZE, a.y)
+                        initial_collision_check = True
 
 
+# class Game:
+#     def __init__(self):
+#         self._is_running = True
         
+    
+#     @property
+#     def is_running(self):
+#         return self._is_running
+
+#     @is_running.setter
+#     def is_running(self, value):
+#         if not isinstance(value, bool):
+#             raise ValueError("is_running must be a boolean")
+#         self._is_running = value
+
+#     def update(self):
+#         if not self._is_running:
+#             return
+        
+#         # Обработка логики игры
+#         self.player_control()
+
+#     def draw(self):
+#         screen.clear()
+#         screen.blit('background', (0, 0))  # Замените 'background' на имя вашего изображения фона
+#         self.player.draw()
+
+#     def player_control(self):
+#         if keyboard.left:
+#             self.player.x -= 5
+#         if keyboard.right:
+#             self.player.x += 5
+#         if keyboard.up:
+#             self.player.y -= 5
+#         if keyboard.down:
+#             self.player.y += 5
+
+# game = Game()
+
+# Loading maze to objects-walls and "blits"- boneless textures
 blits = []
 for row in range(len(maze)):
     for column in range(len(maze[row])):
@@ -19,16 +107,23 @@ for row in range(len(maze)):
         else:
             blits.append((tile, (x, y)))
 
+XBOX_PRICE = BASE_XBOX_PRICE
 # Eric Harris and Dylan Klebold
-pirate = Player('pirate', alive=True, anchor=('left', 'top'), pos=(1 * TILE_SIZE, 1 * TILE_SIZE))
+pirate = Player('pirate', 
+                alive=True, 
+                anchor=('left', 'top'), pos=(1 * TILE_SIZE, 1 * TILE_SIZE), 
+                loot={'money': 55})
 eric = NPC('eric', alive=True, hunter=True, 
-             anchor=('left', 'top'), pos=(2 * TILE_SIZE, 2 * TILE_SIZE))
+             anchor=('left', 'top'), pos=(1 * TILE_SIZE, 21 * TILE_SIZE))
 dylan = NPC('dylan', alive=True, hunter=True, 
-            anchor=('left', 'top'), pos=(6 * TILE_SIZE, 6 * TILE_SIZE))
+            anchor=('left', 'top'), pos=(16 * TILE_SIZE, 3 * TILE_SIZE))
+
+check_fix_spawn_pos()
 
 music.play('soundtrack')
 def draw():
     global GAME_ON
+    global XBOX_PRICE
     screen.clear() 
     if GAME_ON:
         screen.clear()   
@@ -43,7 +138,7 @@ def draw():
         dylan.draw()
         helper_draw_enemy_paths()
         # print(pirate.loot,)
-        screen.draw.text(str(pirate.loot), (0, 64), color='red')
+        
 
         for w in Weapon.weapons:
             w.draw()
@@ -51,9 +146,16 @@ def draw():
             screen.draw.text(f"hp:{a.hp:.0f}", 
                             (a.x- TILE_SIZE, a.y+ TILE_SIZE), 
                             color='red', fontsize=16, anchor=(0, 0))  
-        screen.draw.text(f"Time passed: {TIMER:.2f}", (0, 0), color='red')   
+        screen.draw.text(f"Time passed: {TIMER:.2f}", (320, 16), color='blue')   
         draw_actor_aoe(pirate)
-        screen.draw.text(f"q = EXIT to MENU", (200, 0), color='red')
+        screen.draw.text(f"q = EXIT to MENU", (320, 32), color='blue')
+        
+        screen.draw.text(f'LOOT:', (320, 64), color='blue')
+        line = 1
+        for k, v in pirate.loot.items.items():
+            screen.draw.text(f'{k}: {v}', (320, 64 + line*TILE_SIZE), color='blue')
+            line +=1
+        screen.draw.text(f'XBOX price \n+ inflation: \n{XBOX_PRICE:.2f}', (320, 64 + line*TILE_SIZE), color='blue')
     
     if not GAME_ON:
         screen.draw.text("1. Start game", (128, 256), color='green',  fontsize=32)
@@ -66,16 +168,22 @@ def draw():
 
 def update(dt):
     global GAME_ON
+    global XBOX_PRICE
+    global TIMER
+    
+    XBOX_PRICE += XBOX_PRICE/100 * dt
+
+
     if keyboard.escape:
         exit()
         
     if GAME_ON:
         global mouse_down_pos
         global MOUSE_CONTROL
-        global TIMER
         
         TIMER += dt
-        
+        if pirate.loot.items['money'] >= XBOX_PRICE:
+            GAME_ON = False
         # for npc in NPC.npcs:
         #     npc.update()
         
@@ -142,41 +250,7 @@ def on_key_down(key):
     pirate.move(new_x, new_y)
 
 
-# HELPER.py
-def grid():
 
-    for i in range(0, HEIGHT, 16):
-        screen.draw.line((0, i), (WIDTH, i), COLOR_GRAY)
-        screen.draw.text(f'{i}', (0, i), color="black", fontsize=12, anchor=(0,0))
-    for i in range(0, WIDTH, 16):
-        screen.draw.line((i,0), (i,HEIGHT), COLOR_GRAY)
-        screen.draw.text(f'{i}', (i, 0), color="black", fontsize=12, anchor=(0,0))
-
-def helper_draw_enemy_paths():
-    for npc in NPC.npcs:
-        if npc.hunter and npc.path and npc.path != [] or npc.path != None:
-            for cell in npc.path:
-                r = Rect(cell[1] * TILE_SIZE, cell[0] * TILE_SIZE, TILE_SIZE-1, TILE_SIZE-1)
-                screen.draw.rect(r, 'green')        
-                
-def draw_actor_aoe(actor):
-    
-    min_x = min(coord[0] for coord in actor.area_of_effect)
-    min_y = min(coord[1] for coord in actor.area_of_effect)
-    max_x = max(coord[0] for coord in actor.area_of_effect)
-    max_y = max(coord[1] for coord in actor.area_of_effect)
-    aoe_rect = Rect(min_x, min_y, max_x - min_x, max_y - min_y)
-    return screen.draw.rect(aoe_rect, 'red')
-
-initial_collision_check = True
-while initial_collision_check:
-    initial_collision_check = False
-    for a in Actor.actors:
-        if a.alive:
-            for o in Object.objects:
-                if a.colliderect(o):
-                    a.pos = (a.x+TILE_SIZE, a.y)
-                    initial_collision_check = True
                     
         
 pgzrun.go() # self run

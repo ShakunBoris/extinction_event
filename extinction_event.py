@@ -1,6 +1,6 @@
 import pgzero
 import pgzrun # to run with play button
-import eevent.astar as astar 
+# import eevent.astar as astar 
 from eevent.settings import *
 from eevent.actors import *
 from eevent.objects import *
@@ -15,20 +15,10 @@ def grid():
         screen.draw.line((i,0), (i,HEIGHT), COLOR_GRAY)
         screen.draw.text(f'{i}', (i, 0), color="black", fontsize=12, anchor=(0,0))
 
-# # Генератор для циклического перебора цветов
-# def color_cycle():
-#     colors = ['green', 'red', 'blue', 'yellow', 'purple', 'orange']
-#     while True:
-#         for color in colors:
-#             yield color
-
-# # Создаем генератор
-# color_generator = color_cycle()
 
 def helper_draw_enemy_paths():
     for npc in NPC.npcs:
         if npc.hunter and npc.path and npc.path != [] or npc.path != None:
-            # color = next(color_generator)
             color = {'eric': 'green','dylan':'purple'}
             for cell in npc.path:
                 r = Rect(cell[1] * TILE_SIZE, cell[0] * TILE_SIZE, TILE_SIZE-1, TILE_SIZE-1)
@@ -56,56 +46,155 @@ def check_fix_spawn_pos():
                         initial_collision_check = True
 
 
-# class Game:
-#     def __init__(self):
-#         self._is_running = True
+class Game:
+    def __init__(self):
+        self._is_running = False     
+        self.blits = [] # objects are then loaded separately 
+        
+        self._last_key_press = 0.0
+        
+        self.load_maze_blits_objects()  
         
     
-#     @property
-#     def is_running(self):
-#         return self._is_running
+    def load_maze_blits_objects(self):
+        for row in range(len(maze)):
+            for column in range(len(maze[row])):
+                x = column * TILE_SIZE
+                y = row * TILE_SIZE
+                tile = tiles[maze[row][column]]
+                if tile in Object.images:
+                    _ = Object(x,y,tile)
+                else:
+                    self.blits.append((tile, (x, y)))
+    
+    @property
+    def is_running(self):
+        return self._is_running
 
-#     @is_running.setter
-#     def is_running(self, value):
-#         if not isinstance(value, bool):
-#             raise ValueError("is_running must be a boolean")
-#         self._is_running = value
+    @is_running.setter
+    def is_running(self, value):
+        if not isinstance(value, bool):
+            raise ValueError("is_running must be a boolean")
+        self._is_running = value
 
-#     def update(self):
-#         if not self._is_running:
-#             return
+    def update(self, dt):
+        # if not self._is_running:
+        #     return
+        # global GAME_ON
+        global XBOX_PRICE
+        global TIMER
         
-#         # Обработка логики игры
-#         self.player_control()
+        XBOX_PRICE += XBOX_PRICE/100 * dt
 
-#     def draw(self):
-#         screen.clear()
-#         screen.blit('background', (0, 0))  # Замените 'background' на имя вашего изображения фона
-#         self.player.draw()
 
-#     def player_control(self):
-#         if keyboard.left:
-#             self.player.x -= 5
-#         if keyboard.right:
-#             self.player.x += 5
-#         if keyboard.up:
-#             self.player.y -= 5
-#         if keyboard.down:
-#             self.player.y += 5
+        if keyboard.escape:
+            exit()
+            
+        if self.is_running:
+            global mouse_down_pos
+            global MOUSE_CONTROL
+            
+            TIMER += dt
+            if pirate.loot.items['money'] >= XBOX_PRICE:
+                self.is_running = False
 
-# game = Game()
+            
+            if MOUSE_CONTROL == True and not pirate.collidepoint(mouse_down_pos):
+                not_moved = 1
+                if (mouse_down_pos[0] - pirate.x) > 0:
+                    not_moved *= pirate.move_mouse(pirate.x+TILE_SIZE, pirate.y)
+                elif (mouse_down_pos[0] - pirate.x) < 0:
+                    not_moved *= pirate.move_mouse(pirate.x-TILE_SIZE, pirate.y)
+                if (mouse_down_pos[1] - pirate.y) > 0:
+                    not_moved *= pirate.move_mouse(pirate.x, pirate.y + TILE_SIZE)
+                elif (mouse_down_pos[1] - pirate.y) < 0:
+                    not_moved *= pirate.move_mouse(pirate.x, pirate.y - TILE_SIZE)
+                if not_moved == 1:
+                    MOUSE_CONTROL = False
+            else:
+                MOUSE_CONTROL = False
+        self.player_control(dt)
 
-# Loading maze to objects-walls and "blits"- boneless textures
-blits = []
-for row in range(len(maze)):
-    for column in range(len(maze[row])):
-        x = column * TILE_SIZE
-        y = row * TILE_SIZE
-        tile = tiles[maze[row][column]]
-        if tile in Object.images:
-            _ = Object(x,y,tile)
+    def draw(self):
+        # global GAME_ON
+        global XBOX_PRICE
+        screen.clear() 
+        if self.is_running:
+            screen.clear()   
+            grid() 
+            
+            for b in self.blits:
+                screen.blit(*b)
+            for _ in Object.objects:
+                screen.blit(_.image, (_.x, _.y)) # _.create()
+            eric.draw()
+            pirate.draw()
+            dylan.draw()
+            helper_draw_enemy_paths()
+            # print(pirate.loot,)
+            
+
+            for w in Weapon.weapons:
+                w.draw()
+            for a in Actor.actors:
+                screen.draw.text(f"hp:{a.hp:.0f}", 
+                                (a.x- TILE_SIZE, a.y+ TILE_SIZE), 
+                                color='red', fontsize=16, anchor=(0, 0))  
+            screen.draw.text(f"Time passed: {TIMER:.2f}", (320, 16), color='blue')   
+            draw_actor_aoe(pirate)
+            screen.draw.text(f"q = EXIT to MENU", (320, 32), color='blue')
+            
+            screen.draw.text(f'LOOT:', (320, 64), color='blue')
+            line = 1
+            for k, v in pirate.loot.items.items():
+                screen.draw.text(f'{k}: {v}', (320, 64 + line*TILE_SIZE), color='white')
+                line +=1
+            screen.draw.text(f'XBOX price \n+ inflation: \n{XBOX_PRICE:.2f}', (320, 64 + line*TILE_SIZE), color='blue')
+        
+        if not self.is_running:
+            screen.draw.text("1. Start game", (128, 256), color='green',  fontsize=32)
+            screen.draw.text("2. Sound on/off", (128, 288), color='green',  fontsize=32)
+            screen.draw.text("3. Exit", (128, 320), color='green',  fontsize=32)
+            
+            screen.draw.text('controls:\nq-menu\narrows-move around\nz-hit\nx-bring hunter\' attention', (0,0))
+            screen.draw.text('help eric and dylan to find their friends', (0,128))
+
+    
+    def player_control(self, dt):
+        self._last_key_press += dt
+        
+        if self._last_key_press <= 0.1:
+            pass
         else:
-            blits.append((tile, (x, y)))
+            if keyboard.z:
+                pirate.hit()
+                sounds.chop.play()
+            elif keyboard.x:
+                pirate.push()
+            elif keyboard.q:
+                print(f'GAME PAUSED \n players: \n{Player.players},\n NPC: \n{NPC.npcs}')
+                game.is_running = False
+        
+        if self._last_key_press <= 0.1:
+            pass
+        else:
+            self._last_key_press = 0
+            row = int(pirate.y / TILE_SIZE)
+            column = int(pirate.x / TILE_SIZE)   
+            if keyboard.up:
+                row = row - 1
+            elif keyboard.down:
+                row = row + 1
+            elif keyboard.left:
+                column = column - 1
+            elif keyboard.right:
+                column = column + 1
+            new_x = column * TILE_SIZE
+            new_y = row * TILE_SIZE
+            pirate.move(new_x, new_y)
+    
+game = Game()
+
 
 XBOX_PRICE = BASE_XBOX_PRICE
 # Eric Harris and Dylan Klebold
@@ -121,86 +210,12 @@ dylan = NPC('dylan', alive=True, hunter=True,
 check_fix_spawn_pos()
 
 music.play('soundtrack')
+
 def draw():
-    global GAME_ON
-    global XBOX_PRICE
-    screen.clear() 
-    if GAME_ON:
-        screen.clear()   
-        grid() 
-        
-        for b in blits:
-            screen.blit(*b)
-        for _ in Object.objects:
-            screen.blit(_.image, (_.x, _.y)) # _.create()
-        eric.draw()
-        pirate.draw()
-        dylan.draw()
-        helper_draw_enemy_paths()
-        # print(pirate.loot,)
-        
-
-        for w in Weapon.weapons:
-            w.draw()
-        for a in Actor.actors:
-            screen.draw.text(f"hp:{a.hp:.0f}", 
-                            (a.x- TILE_SIZE, a.y+ TILE_SIZE), 
-                            color='red', fontsize=16, anchor=(0, 0))  
-        screen.draw.text(f"Time passed: {TIMER:.2f}", (320, 16), color='blue')   
-        draw_actor_aoe(pirate)
-        screen.draw.text(f"q = EXIT to MENU", (320, 32), color='blue')
-        
-        screen.draw.text(f'LOOT:', (320, 64), color='blue')
-        line = 1
-        for k, v in pirate.loot.items.items():
-            screen.draw.text(f'{k}: {v}', (320, 64 + line*TILE_SIZE), color='blue')
-            line +=1
-        screen.draw.text(f'XBOX price \n+ inflation: \n{XBOX_PRICE:.2f}', (320, 64 + line*TILE_SIZE), color='blue')
-    
-    if not GAME_ON:
-        screen.draw.text("1. Start game", (128, 256), color='green',  fontsize=32)
-        screen.draw.text("2. Sound on/off", (128, 288), color='green',  fontsize=32)
-        screen.draw.text("3. Exit", (128, 320), color='green',  fontsize=32)
-        
-        screen.draw.text('controls:\nq-menu\narrows-move around\nz-hit\nx-bring hunter\' attention', (0,0))
-        screen.draw.text('help eric and dylan to find their friends', (0,128))
-
+    game.draw()
 
 def update(dt):
-    global GAME_ON
-    global XBOX_PRICE
-    global TIMER
-    
-    XBOX_PRICE += XBOX_PRICE/100 * dt
-
-
-    if keyboard.escape:
-        exit()
-        
-    if GAME_ON:
-        global mouse_down_pos
-        global MOUSE_CONTROL
-        
-        TIMER += dt
-        if pirate.loot.items['money'] >= XBOX_PRICE:
-            GAME_ON = False
-        # for npc in NPC.npcs:
-        #     npc.update()
-        
-        if MOUSE_CONTROL == True and not pirate.collidepoint(mouse_down_pos):
-            not_moved = 1
-            if (mouse_down_pos[0] - pirate.x) > 0:
-                not_moved *= pirate.move_mouse(pirate.x+TILE_SIZE, pirate.y)
-            elif (mouse_down_pos[0] - pirate.x) < 0:
-                not_moved *= pirate.move_mouse(pirate.x-TILE_SIZE, pirate.y)
-            if (mouse_down_pos[1] - pirate.y) > 0:
-                not_moved *= pirate.move_mouse(pirate.x, pirate.y + TILE_SIZE)
-            elif (mouse_down_pos[1] - pirate.y) < 0:
-                not_moved *= pirate.move_mouse(pirate.x, pirate.y - TILE_SIZE)
-            if not_moved == 1:
-                MOUSE_CONTROL = False
-        else:
-            MOUSE_CONTROL = False
+    game.update(dt)
 
     
 def on_mouse_down(pos):
@@ -211,13 +226,13 @@ def on_mouse_down(pos):
     mouse_down_pos = (pos[0] - pos[0]%TILE_SIZE, pos[1]-pos[1]%TILE_SIZE)  
 
 def on_key_down(key):
-    global GAME_ON
-    if not GAME_ON:
+    if not game.is_running:
         match key:
             case keys.K_1:
-                GAME_ON = True
+                game.is_running = True
                 for n in NPC.npcs:
-                    clock.schedule_interval(n.walk_path, 0.5)
+                    # clock.schedule_interval(n.walk_path, 0.5)
+                    n.revive()
                 return
             case keys.K_2:
                 if music.is_playing('soundtrack'):
@@ -226,31 +241,6 @@ def on_key_down(key):
                     music.unpause()
             case keys.K_3:
                 exit()
-    row = int(pirate.y / TILE_SIZE)
-    column = int(pirate.x / TILE_SIZE)
-    if key == keys.Z:
-        pirate.hit()   
-    elif key == keys.UP:
-        row = row - 1
-    elif key == keys.DOWN:
-        row = row + 1
-    elif key == keys.LEFT:
-        column = column - 1
-    elif key == keys.RIGHT:
-        column = column + 1
- 
-    elif key == keys.X:
-        pirate.push()
-    elif key == keys.Q:
-        print(f'players: \n{Player.players},\n NPC: \n{NPC.npcs}')
-        GAME_ON = False
-        return
-    new_x = column * TILE_SIZE
-    new_y = row * TILE_SIZE
-    pirate.move(new_x, new_y)
 
 
-
-                    
-        
 pgzrun.go() # self run

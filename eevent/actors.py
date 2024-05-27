@@ -83,9 +83,7 @@ class Actor(PGZActor):
                 self.loot.add_items(loot.items)
                 Loot.all_loot.remove(loot)
                 print(f'{self.name} collected {loot.items}')
-                if self.loot.items['money'] == 300:
-                    global GAME_ON
-                    GAME_ON = False
+
     
     def _can_move_to(self, new_x, new_y):
         
@@ -219,7 +217,6 @@ class NPC(Actor):
         self.hunter: bool = hunter
         self.prey: bool = prey
         self.search_target = None
-        # clock.schedule_interval(self.walk_path, 0.5)
         NPC.npcs.append(self)
         
     def _calculate_new_path_to(self, destination):
@@ -236,8 +233,8 @@ class NPC(Actor):
         self.alive = True
         self.state = 'stand'
         self.active_animation = self._get_list_of_frames()
-        self.loot = Loot(self.x, self.y)
         clock.schedule_interval(self.walk_path, 0.5)
+        
         
     def walk_path(self):
         if self.alive == False:

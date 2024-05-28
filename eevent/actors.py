@@ -178,6 +178,11 @@ class Actor(PGZActor):
                         aoe.append((i,j))
         return aoe
 
+    def draw(self):
+        super().draw()
+        self.weapon.draw()   
+        
+        
     def __repr__(self) -> str:
         return f'\n player:{self.name}: {self.pos} \n loot: \n {self.loot}'
     
@@ -270,8 +275,7 @@ class NPC(Actor):
             self.search_target = pos
             self._calculate_new_path_to((int(self.search_target[0]), int(self.search_target[1])))
 
-            
-            
+         
             
     def __del__(self):
         if self in NPC.npcs:

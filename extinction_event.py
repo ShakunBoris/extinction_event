@@ -98,22 +98,29 @@ class Game:
             if pirate.loot.items['money'] >= XBOX_PRICE:
                 self.is_running = False
 
-            
-            if MOUSE_CONTROL == True and not pirate.collidepoint(mouse_down_pos):
-                not_moved = 1
-                if (mouse_down_pos[0] - pirate.x) > 0:
-                    not_moved *= pirate.move_mouse(pirate.x+TILE_SIZE, pirate.y)
-                elif (mouse_down_pos[0] - pirate.x) < 0:
-                    not_moved *= pirate.move_mouse(pirate.x-TILE_SIZE, pirate.y)
-                if (mouse_down_pos[1] - pirate.y) > 0:
-                    not_moved *= pirate.move_mouse(pirate.x, pirate.y + TILE_SIZE)
-                elif (mouse_down_pos[1] - pirate.y) < 0:
-                    not_moved *= pirate.move_mouse(pirate.x, pirate.y - TILE_SIZE)
-                if not_moved == 1:
-                    MOUSE_CONTROL = False
-            else:
+            '''TELEPORT TO POINT'''
+            if MOUSE_CONTROL == True :
+                pirate.pos = (mouse_down_pos[0], mouse_down_pos[1])
                 MOUSE_CONTROL = False
-        self.player_control(dt)
+                        
+            ''' for FF to pointer or next wall'''
+            # if MOUSE_CONTROL == True and not pirate.collidepoint(mouse_down_pos):
+            #     not_moved = 1
+            #     if (mouse_down_pos[0] - pirate.x) > 0:
+            #         not_moved *= pirate.move_mouse(pirate.x+TILE_SIZE, pirate.y)
+            #     elif (mouse_down_pos[0] - pirate.x) < 0:
+            #         not_moved *= pirate.move_mouse(pirate.x-TILE_SIZE, pirate.y)
+            #     if (mouse_down_pos[1] - pirate.y) > 0:
+            #         not_moved *= pirate.move_mouse(pirate.x, pirate.y + TILE_SIZE)
+            #     elif (mouse_down_pos[1] - pirate.y) < 0:
+            #         not_moved *= pirate.move_mouse(pirate.x, pirate.y - TILE_SIZE)
+            #     if not_moved == 1:
+            #         MOUSE_CONTROL = False
+            # else:
+            #     MOUSE_CONTROL = False
+                
+        if self.is_running:
+            self.player_control(dt)
 
     def draw(self):
         # global GAME_ON
@@ -170,10 +177,8 @@ class Game:
                 pirate.hit()
                 sounds.chop.play()
             elif keyboard.x:
-                pirate.push()
-            elif keyboard.q:
-                print(f'GAME PAUSED \n players: \n{Player.players},\n NPC: \n{NPC.npcs}')
-                game.is_running = False
+                pirate.scream()
+
         
         if self._last_key_press <= 0.1:
             pass
@@ -231,7 +236,6 @@ def on_key_down(key):
             case keys.K_1:
                 game.is_running = True
                 for n in NPC.npcs:
-                    # clock.schedule_interval(n.walk_path, 0.5)
                     n.revive()
                 return
             case keys.K_2:
@@ -241,6 +245,12 @@ def on_key_down(key):
                     music.unpause()
             case keys.K_3:
                 exit()
-
+    else: 
+        match key:
+            case keys.Q:
+                print(f'GAME PAUSED \n players: \n{Player.players},\n NPC: \n{NPC.npcs}')
+                for npc in NPC.npcs:
+                    npc.die()
+                game.is_running = False
 
 pgzrun.go() # self run

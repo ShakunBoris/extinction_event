@@ -39,7 +39,6 @@ class Actor(PGZActor):
         
         self.path = []
         
-        clock.schedule_interval(self.cycle_animation, 0.1)
         Actor.actors.append(self)
     
     def _get_list_of_frames(self):
@@ -157,14 +156,13 @@ class Actor(PGZActor):
         if self.hp > 0:
             self.hp -= damage
         if self.hp <= 0:
-            self.state = 'dead'
-            self.alive = False
-            self.active_animation=self._get_list_of_frames()
+            self.die()
 
             
-    def push(self):
-        pass
-    
+    def scream(self):
+        for npc in NPC.npcs:
+            npc.hear_scream(self.pos)
+
     
     def cycle_animation(self):  
         if self.active_animation:
@@ -226,20 +224,26 @@ class NPC(Actor):
         maze_object_actors = copy.deepcopy(maze)
         for a in Actor.actors:
             row, column = int(a.y//TILE_SIZE),  int(a.x//TILE_SIZE)
-            maze_object_actors[row][column] = 1
+            if end != (row, column):
+                maze_object_actors[row][column] = 1
         self.path = astar(start, end, maze_object_actors)
         
     def revive(self):
         self.alive = True
         self.state = 'stand'
         self.active_animation = self._get_list_of_frames()
+        clock.schedule_interval(self.cycle_animation, 0.1)
         clock.schedule_interval(self.walk_path, 0.5)
-        
+    
+    def die(self):
+        self.state = 'dead'
+        self.alive = False
+        self.active_animation = self._get_list_of_frames()
+        clock.unschedule(self.cycle_animation)
+        clock.unschedule(self.walk_path)
         
     def walk_path(self):
         if self.alive == False:
-            clock.unschedule(self.walk_path)
-            clock.schedule(self.revive, 5)
             return
         if self.path == [] or self.path == None:
             if not self.search_target:
@@ -254,9 +258,21 @@ class NPC(Actor):
             if self._can_move_to(self.path[0][1]*TILE_SIZE, self.path[0][0]*TILE_SIZE):
                 self.move(self.path[0][1]*TILE_SIZE, self.path[0][0]*TILE_SIZE)
                 self.path.pop(0)
+                if len(self.path) == 1 and self.search_target != None:
+                    self.search_target = None
+                    self.path = None
+                    
             else:
                 self._calculate_new_path_to((self.path[-1][1]*TILE_SIZE, self.path[-1][0]*TILE_SIZE))
-                
+    
+    def hear_scream(self, pos):
+        if self.hunter and self.search_target != pos:
+            self.search_target = pos
+            self._calculate_new_path_to((int(self.search_target[0]), int(self.search_target[1])))
+
+            
+            
+            
     def __del__(self):
         if self in NPC.npcs:
             NPC.npcs.remove(self)

@@ -74,10 +74,12 @@ class Game:
             anchor=('left', 'top'), pos=(16 * TILE_SIZE, 3 * TILE_SIZE))
         
         self.preys = []
-        for i in range(3):
-            self.preys.append(NPC('prey', alive=True, hunter=False, prey=True,
+        for i in range(1):
+            npc = NPC('prey', alive=True, hunter=False, prey=True,
                             anchor=('left', 'top'), 
-                            pos=(random.randint(5,15) * TILE_SIZE, random.randint(5,15) * TILE_SIZE)))
+                            pos=(random.randint(5,15) * TILE_SIZE, random.randint(5,15) * TILE_SIZE))
+            npc.weapon = None
+            self.preys.append(npc)
         
     
     def load_maze_blits_objects(self):

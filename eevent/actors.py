@@ -99,48 +99,48 @@ class Actor(PGZActor):
         return True
     
     def _set_direction(self, new_x, new_y):
-        if new_x < self.x and self._can_move_to(new_x, new_y):# and new_x != self.weapon.x:
+        if new_x < self.x and self._can_move_to(new_x, new_y):
             self.active_cell = (self.x-2*TILE_SIZE, self.y)
-            if hasattr(self, 'weapon'):
+            if self.weapon!=None and hasattr(self, 'weapon'):
                 self.weapon.anchor = ('right', 'top')
                 self.weapon.angle = 90
         elif new_x < self.x and not self._can_move_to(new_x, new_y):       
             self.active_cell = (new_x, new_y)
-            if hasattr(self, 'weapon'):
+            if self.weapon!=None and hasattr(self, 'weapon'):
                 self.weapon.anchor = ('right', 'top')
                 self.weapon.angle = 90
         if new_x > self.x and self._can_move_to(new_x, new_y):# and new_x != self.weapon.x:
             self.active_cell = (self.x+2*TILE_SIZE, self.y)
-            if hasattr(self, 'weapon'):
+            if self.weapon!=None and hasattr(self, 'weapon'):
                 self.weapon.anchor = ('left', 'bottom')
                 self.weapon.angle = -90
         elif new_x > self.x and not self._can_move_to(new_x, new_y):  
             self.active_cell = (new_x, new_y)     
-            if hasattr(self, 'weapon'):
+            if self.weapon!=None and hasattr(self, 'weapon'):
                 self.weapon.anchor = ('left', 'bottom')
                 self.weapon.angle = -90
             
         if new_y < self.y and self._can_move_to(new_x, new_y):# and new_y != self.weapon.y:
             self.active_cell = (self.x, self.y-2*TILE_SIZE)
-            if hasattr(self, 'weapon'):
+            if self.weapon!=None and hasattr(self, 'weapon'):
                 self.weapon.anchor = ('left', 'top')
                 self.weapon.angle = 0
         elif  new_y < self.y and not self._can_move_to(new_x, new_y): 
             self.active_cell = (new_x, new_y)
-            if hasattr(self, 'weapon'):
+            if self.weapon!=None and hasattr(self, 'weapon'):
                 self.weapon.anchor = ('left', 'top')
                 self.weapon.angle = 0
         if new_y> self.y and self._can_move_to(new_x, new_y):# and new_y != self.weapon.y:
             self.active_cell = (self.x, self.y+2*TILE_SIZE)
-            if hasattr(self, 'weapon'):
+            if self.weapon!=None and hasattr(self, 'weapon'):
                 self.weapon.anchor = ('right', 'bottom')
                 self.weapon.angle = 180
         elif  new_y > self.y and not self._can_move_to(new_x, new_y): 
             self.active_cell = (new_x, new_y)
-            if hasattr(self, 'weapon'):
+            if self.weapon!=None and hasattr(self, 'weapon'):
                 self.weapon.anchor = ('right', 'bottom')
                 self.weapon.angle = 180
-        if hasattr(self, 'weapon'):
+        if self.weapon!=None and hasattr(self, 'weapon'):
             self.weapon.pos = self.active_cell
 
 
@@ -180,7 +180,8 @@ class Actor(PGZActor):
 
     def draw(self):
         super().draw()
-        self.weapon.draw()   
+        if self.weapon != None:
+            self.weapon.draw()   
         
         
     def __repr__(self) -> str:

@@ -19,7 +19,7 @@ def grid():
 
 def helper_draw_enemy_paths():
     for npc in NPC.npcs:
-        if npc.hunter and npc.path and npc.path != [] or npc.path != None:
+        if npc.hunter and npc.path and (npc.path != [] or npc.path != None):
             color = {'eric': 'green','dylan':'purple'}
             for cell in npc.path:
                 r = Rect(cell[1] * TILE_SIZE, cell[0] * TILE_SIZE, TILE_SIZE-1, TILE_SIZE-1)
@@ -72,6 +72,12 @@ class Game:
              anchor=('left', 'top'), pos=(1 * TILE_SIZE, 21 * TILE_SIZE))
         self.dylan = NPC('dylan', alive=True, hunter=True, 
             anchor=('left', 'top'), pos=(16 * TILE_SIZE, 3 * TILE_SIZE))
+        
+        self.preys = []
+        for i in range(3):
+            self.preys.append(NPC('prey', alive=True, hunter=False, prey=True,
+                            anchor=('left', 'top'), 
+                            pos=(random.randint(5,15) * TILE_SIZE, random.randint(5,15) * TILE_SIZE)))
         
     
     def load_maze_blits_objects(self):
@@ -152,6 +158,9 @@ class Game:
             self.eric.draw()
             self.player.draw()
             self.dylan.draw()
+            for npc in self.preys:
+                if npc.prey:
+                    npc.draw()
             helper_draw_enemy_paths()
             
 
@@ -289,6 +298,8 @@ def on_key_down(key):
                 print('objects', Object.objects)
                 print(len(Actor.actors))
                 print(len(Object.objects))
+                for n in NPC.npcs:
+                    print(f'{n.name} \n hunter: {n.hunter} \n prey:{n.prey}')
                     
                 for npc in NPC.npcs:
                     npc.die()

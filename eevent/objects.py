@@ -5,8 +5,8 @@ from .settings import *
 
 class Weapon(PGZActor):
     available_weapons = {
-        'saber': {'damage': 10, 'range': 1},
-        'gun': {'damage': 15, 'range': 3},
+        'saber': {'damage': 10, 'speed': 1, 'range': 1},
+        'gun': {'damage': 15, 'speed': 1, 'range': 5},
     }
     weapons = []
     def __init__(self, name, *args, **kwargs):
@@ -14,6 +14,7 @@ class Weapon(PGZActor):
         if name in Weapon.available_weapons:
             self.name = name
             self.damage = Weapon.available_weapons[name]['damage']
+            self.speed = Weapon.available_weapons[name]['speed']
             self.range = Weapon.available_weapons[name]['range']
             self.colliding = False
         else:

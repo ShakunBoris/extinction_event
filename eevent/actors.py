@@ -39,6 +39,7 @@ class Actor(PGZActor):
         
         self.path = []
         
+        self.timer = 0
         Actor.actors.append(self)
     
     def _get_list_of_frames(self):
@@ -142,10 +143,8 @@ class Actor(PGZActor):
                 self.weapon.angle = 180
         if self.weapon!=None and hasattr(self, 'weapon'):
             self.weapon.pos = self.active_cell
-
-
-        
-    
+            
+            
     def hit(self):
         test_damage = 50
         for actor in Actor.actors:
@@ -185,7 +184,7 @@ class Actor(PGZActor):
         
         
     def __repr__(self) -> str:
-        return f'\n player:{self.name}: {self.pos} \n loot: \n {self.loot}'
+        return f'{self.name}'
     
     def __del__(self):
         if self in Actor.actors:
@@ -207,6 +206,12 @@ class Player(Actor):
         else:              
             return 1
     
+    def die(self):
+        self.state = 'dead'
+        self.alive = False
+        self.active_animation = self._get_list_of_frames()
+        clock.unschedule(self.cycle_animation)
+    
     def __del__(self):
         if self in Player.players:
             Player.players.remove(self)
@@ -221,6 +226,9 @@ class NPC(Actor):
         self.hunter: bool = hunter
         self.prey: bool = prey
         self.search_target = None
+        self.target = None
+        self.sight = []
+        self._last_attack_timer = 0
         NPC.npcs.append(self)
         
     def _calculate_new_path_to(self, destination):
@@ -264,7 +272,7 @@ class NPC(Actor):
             if self._can_move_to(self.path[0][1]*TILE_SIZE, self.path[0][0]*TILE_SIZE):
                 self.move(self.path[0][1]*TILE_SIZE, self.path[0][0]*TILE_SIZE)
                 self.path.pop(0)
-                if len(self.path) == 1 and self.search_target != None:
+                if len(self.path) == 0 and self.search_target != None:
                     self.search_target = None
                     self.path = None
                     
@@ -276,8 +284,78 @@ class NPC(Actor):
             self.search_target = pos
             self._calculate_new_path_to((int(self.search_target[0]), int(self.search_target[1])))
 
-         
+
+    def update(self, dt):
+        self.timer += dt
+        self._last_attack_timer += dt
+        self.sight = self.look_forward()
+        
+        
+        for a in Actor.actors:
+            if hasattr(a, 'hunter') and a.hunter:
+                continue
+            if not a.alive:
+                continue
+            # No target and see Prey
+            if a.pos in self.sight and self.target == None:
+                self.target = a
+                # current_target_pos = self.target.pos
+                self._calculate_new_path_to(self.target.pos)
+            # has target but lost sight to it. focuses on new one
+            elif a.pos in self.sight and self.target != None and self.target.pos not in self.sight:
+                self.target = a
+                self._calculate_new_path_to(self.target.pos)
+            # has target and still sees it
+            elif a.pos in self.sight and self.target == a:
+                self.target = a
+                self.attack()
+                if self.timer >= 2:
+                    self.timer = 0
+                    self._calculate_new_path_to(self.target.pos)
+            # has target but loses it. sets the search_target
+            elif self.target != None and self.target.pos not in self.sight:
+                self.search_target = self.target.pos
+                self.target = None
+                self._calculate_new_path_to(self.search_target)
+
+    def attack(self):
+        
+        if self.weapon != None:
+            damage = self.weapon.damage
+            speed = self.weapon.speed
+            range = self.weapon.range
+        else:
+            return
+        if abs(self.x - self.target.x)/TILE_SIZE > range or abs(self.y - self.target.y)/TILE_SIZE > range:
+            return
+        if self._last_attack_timer < speed:
+            return
+        print(self, 'attacks', self.target, 
+              'hp:', self.target.hp, '-', damage, '=', self.target.hp-damage)
+        
+        self._last_attack_timer = 0
+        self.target._take_hit(self, damage)
             
+    
+    def look_forward(self):
+        dir_x = self.active_cell[0] - self.x
+        dir_y = self.active_cell[1] - self.y
+        sight = []
+        check_cell = (self.x, self.y)
+        walls = [wall.pos for wall in Object.objects]
+        while 0 <= check_cell[0] <= WIDTH and \
+                0 <= check_cell[1] <= HEIGHT:
+                    # print(check_cell)
+                    if check_cell not in walls:
+                        sight.append(check_cell)
+                    else:
+                        break
+                    check_cell = (check_cell[0]+dir_x, check_cell[1]+dir_y)
+        sight.remove((self.x, self.y))
+        return sight
+
+    
+    
     def __del__(self):
         if self in NPC.npcs:
             NPC.npcs.remove(self)

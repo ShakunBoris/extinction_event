@@ -27,7 +27,13 @@ def helper_draw_enemy_paths():
                     screen.draw.rect(r, color[npc.name])        
                 else:
                     screen.draw.rect(r, 'red')
-                    
+
+def helper_draw_npc_sight():
+    for npc in NPC.npcs:
+        for cell in npc.sight:
+            r = Rect(cell[0]+6, cell[1]+6, 4, 4)
+            screen.draw.rect(r, 'yellow')
+                   
 def draw_actor_aoe(actor):
     
     min_x = min(coord[0] for coord in actor.area_of_effect)
@@ -70,8 +76,9 @@ class Game:
         
         self.eric = NPC('eric', alive=True, hunter=True, 
              anchor=('left', 'top'), pos=(1 * TILE_SIZE, 21 * TILE_SIZE))
-        self.dylan = NPC('dylan', alive=True, hunter=True, 
-            anchor=('left', 'top'), pos=(16 * TILE_SIZE, 3 * TILE_SIZE))
+        self.eric.weapon = Weapon('gun', 'gun', pos=self.eric.active_cell, anchor=('left', 'top'))
+        # self.dylan = NPC('dylan', alive=True, hunter=True, 
+        #     anchor=('left', 'top'), pos=(16 * TILE_SIZE, 3 * TILE_SIZE))
         
         self.preys = []
         for i in range(1):
@@ -107,7 +114,6 @@ class Game:
         
         self.xbox_price += self.xbox_price/100 * dt
 
-
         if keyboard.escape:
             exit()
             
@@ -125,6 +131,8 @@ class Game:
                 self.win_lose = 1
                 self.is_running = False
                 
+            for npc in NPC.npcs:
+                npc.update(dt)
 
             '''TELEPORT TO POINT'''
             if MOUSE_CONTROL == True :
@@ -159,11 +167,12 @@ class Game:
                 screen.blit(_.image, (_.x, _.y)) # _.create()
             self.eric.draw()
             self.player.draw()
-            self.dylan.draw()
+            # self.dylan.draw()
             for npc in self.preys:
                 if npc.prey:
                     npc.draw()
             helper_draw_enemy_paths()
+            helper_draw_npc_sight()
             
 
             self.draw_hps()
@@ -221,6 +230,8 @@ class Game:
             screen.draw.text(f'{k}: {v}', (320, 64 + line*TILE_SIZE), color='white')
             line +=1
         screen.draw.text(f'XBOX price \n+ inflation: \n{self.xbox_price:.2f}', (320, 64 + line*TILE_SIZE), color='blue')
+        screen.draw.text(f'eric target: {self.eric.target}', (320, 128 + line*TILE_SIZE), color='blue')
+        screen.draw.text(f'eric search target: {self.eric.search_target}', (320, 160 + line*TILE_SIZE), color='blue')
         
     def draw_menu(self):
 
@@ -280,8 +291,6 @@ def on_key_down(key):
                     Object.objects.clear()
                     game = Game()
                     game.is_running = True
-                print('STARAAAAARRRRTTT')
-                print(NPC.npcs)
                 for n in NPC.npcs:
                     n.revive()
                 return

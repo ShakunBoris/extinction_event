@@ -71,7 +71,7 @@ class Game:
         
         self.load_maze_blits_objects()  
         
-        self.player = Player('pirate', 
+        self.player = Player('pirate', hp=2000,
                 alive=True, 
                 anchor=('left', 'top'), pos=(1 * TILE_SIZE, 1 * TILE_SIZE), 
                 loot={'money': 50})
@@ -79,16 +79,20 @@ class Game:
         self.eric = NPC('eric', alive=True, hunter=True, 
              anchor=('left', 'top'), pos=(1 * TILE_SIZE, 21 * TILE_SIZE))
         self.eric.weapon = Weapon('gun', 'gun', pos=self.eric.active_cell, anchor=('left', 'top'))
-        # self.dylan = NPC('dylan', alive=True, hunter=True, 
-        #     anchor=('left', 'top'), pos=(16 * TILE_SIZE, 3 * TILE_SIZE))
+        self.dylan = NPC('dylan', alive=True, hunter=True, 
+            anchor=('left', 'top'), pos=(16 * TILE_SIZE, 3 * TILE_SIZE))
+        self.dylan.weapon = Weapon('gun', 'gun', pos=self.eric.active_cell, anchor=('left', 'top'))
         
         self.preys = []
-        for i in range(1):
-            npc = NPC('prey', alive=True, hunter=False, prey=True,
-                            anchor=('left', 'top'), 
-                            pos=(random.randint(5,15) * TILE_SIZE, random.randint(5,15) * TILE_SIZE))
-            npc.weapon = None
-            self.preys.append(npc)
+        for i in range(8):
+            row =  random.randint(5,15) 
+            column =  random.randint(5,15) 
+            if maze[row][column] != 1:
+                npc = NPC('prey', alive=True, hunter=False, prey=True,
+                                anchor=('left', 'top'), 
+                                pos=(column * TILE_SIZE, row * TILE_SIZE))
+                npc.weapon = None
+                self.preys.append(npc)
         
     
     def load_maze_blits_objects(self):
@@ -176,7 +180,7 @@ class Game:
                 
             self.eric.draw()
             self.player.draw()
-            # self.dylan.draw()
+            self.dylan.draw()
             for npc in self.preys:
                 if npc.prey:
                     npc.draw()

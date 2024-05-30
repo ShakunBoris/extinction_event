@@ -152,6 +152,7 @@ class Actor(PGZActor):
                 actor._take_hit(self, test_damage) # ADD WEAPON
     
     def _take_hit(self, damager, damage):
+        print(self.name, 'takes hit')
         if self.hp > 0:
             self.hp -= damage
         if self.hp <= 0:
@@ -236,10 +237,10 @@ class NPC(Actor):
         start = (int(self.y // TILE_SIZE), int(self.x // TILE_SIZE))
         end = (int(destination[1] // TILE_SIZE), int(destination[0] // TILE_SIZE))
         maze_object_actors = copy.deepcopy(maze)
-        for a in Actor.actors:
-            row, column = int(a.y//TILE_SIZE),  int(a.x//TILE_SIZE)
-            if end != (row, column):
-                maze_object_actors[row][column] = 1
+        # for a in Actor.actors:
+        #     row, column = int(a.y//TILE_SIZE),  int(a.x//TILE_SIZE)
+        #     if end != (row, column):
+        #         maze_object_actors[row][column] = 1
         self.path = astar(start, end, maze_object_actors)
         
     def revive(self):
@@ -263,10 +264,11 @@ class NPC(Actor):
             if not self.search_target:
                 x = random.randint(0, 31) * TILE_SIZE
                 y = random.randint(0, 31) * TILE_SIZE
+                self._calculate_new_path_to((x, y))
             else:
-                x = random.randint(0, 31) * TILE_SIZE # ALL TEMP NO CHECK FOR SEARCH TARGET
-                y = random.randint(0, 31) * TILE_SIZE
-            self._calculate_new_path_to((x, y))
+                # x = self.search_target[0] # ALL TEMP NO CHECK FOR SEARCH TARGET
+                # y = self.search_target[1]
+                self._calculate_new_path_to((int(self.search_target[0]), int(self.search_target[1])))
         elif self.path != None:
             # path maze inverted to path coords
             if self._can_move_to(self.path[0][1]*TILE_SIZE, self.path[0][0]*TILE_SIZE):
@@ -277,7 +279,14 @@ class NPC(Actor):
                     self.path = None
                     
             else:
-                self._calculate_new_path_to((self.path[-1][1]*TILE_SIZE, self.path[-1][0]*TILE_SIZE))
+                if len(self.path) == 1 and self.target:
+                    print('if len(self.path) == 1 and self.target:')
+                    pass
+                else:
+                    x = random.randint(0, 31) * TILE_SIZE
+                    y = random.randint(0, 31) * TILE_SIZE
+                    self._calculate_new_path_to((x, y))
+                # self._calculate_new_path_to((self.path[-1][1]*TILE_SIZE, self.path[-1][0]*TILE_SIZE))
     
     def hear_scream(self, pos):
         if self.hunter and self.search_target != pos:
@@ -290,34 +299,47 @@ class NPC(Actor):
         self._last_attack_timer += dt
         self.sight = self.look_forward()
         
-        
-        for a in Actor.actors:
-            if hasattr(a, 'hunter') and a.hunter:
-                continue
-            if not a.alive:
-                continue
-            # No target and see Prey
-            if a.pos in self.sight and self.target == None:
-                self.target = a
-                # current_target_pos = self.target.pos
-                self._calculate_new_path_to(self.target.pos)
-            # has target but lost sight to it. focuses on new one
-            elif a.pos in self.sight and self.target != None and self.target.pos not in self.sight:
-                self.target = a
-                self._calculate_new_path_to(self.target.pos)
-            # has target and still sees it
-            elif a.pos in self.sight and self.target == a:
-                self.target = a
-                # self.attack()
-                self.shoot()
-                if self.timer >= 2:
-                    self.timer = 0
+        if self.hunter:
+            for a in Actor.actors:
+                if a == self:
+                    continue
+                if hasattr(a, 'hunter') and a.hunter:
+                    continue
+                if not a.alive:
+                    continue
+                # No target and see Prey
+                if a.pos in self.sight and self.target == None:
+                    self.target = a
+                    # current_target_pos = self.target.pos
                     self._calculate_new_path_to(self.target.pos)
-            # has target but loses it. sets the search_target
-            elif self.target != None and self.target.pos not in self.sight:
-                self.search_target = self.target.pos
-                self.target = None
-                self._calculate_new_path_to(self.search_target)
+                # has target but lost sight to it. focuses on new one
+                elif a.pos in self.sight and self.target != None and self.target.pos not in self.sight:
+                    self.target = a
+                    self._calculate_new_path_to(self.target.pos)
+                # has target and still sees it
+                elif a.pos in self.sight and self.target == a:
+                    self.target = a
+                    # self.attack()
+                    self.shoot()
+                    if self.timer >= 2:
+                        self.timer = 0
+                        self._calculate_new_path_to(self.target.pos)
+                # has target but loses it. sets the search_target
+                elif self.target != None and self.target.pos not in self.sight:
+                    self.search_target = self.target.pos
+                    self.target = None
+                    self._calculate_new_path_to(self.search_target)
+        if self.prey:
+            for a in Actor.actors:
+                if a == self:
+                    continue
+                if hasattr(a, 'hunter') and not a.hunter:
+                    continue
+                if not a.alive:
+                    continue
+                if a.pos in self.sight:
+                    pass
+                    # calculate new path in opposite direction
 
     # def attack(self):
         

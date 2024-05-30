@@ -308,7 +308,8 @@ class NPC(Actor):
             # has target and still sees it
             elif a.pos in self.sight and self.target == a:
                 self.target = a
-                self.attack()
+                # self.attack()
+                self.shoot()
                 if self.timer >= 2:
                     self.timer = 0
                     self._calculate_new_path_to(self.target.pos)
@@ -318,24 +319,47 @@ class NPC(Actor):
                 self.target = None
                 self._calculate_new_path_to(self.search_target)
 
-    def attack(self):
+    # def attack(self):
         
+    #     if self.weapon != None:
+    #         damage = self.weapon.damage
+    #         speed = self.weapon.speed
+    #         range = self.weapon.range
+    #     else:
+    #         return
+    #     if abs(self.x - self.target.x)/TILE_SIZE > range or abs(self.y - self.target.y)/TILE_SIZE > range:
+    #         return
+    #     if self._last_attack_timer < speed:
+    #         return
+    #     print(self, 'attacks', self.target, 
+    #           'hp:', self.target.hp, '-', damage, '=', self.target.hp-damage)
+        
+    #     self._last_attack_timer = 0
+    #     self.target._take_hit(self, damage)
+
+    def shoot(self):
         if self.weapon != None:
             damage = self.weapon.damage
-            speed = self.weapon.speed
+            shooting_speed = self.weapon.shooting_speed
             range = self.weapon.range
         else:
             return
+        # check if weapon range is OK. WHY HERE?
         if abs(self.x - self.target.x)/TILE_SIZE > range or abs(self.y - self.target.y)/TILE_SIZE > range:
             return
-        if self._last_attack_timer < speed:
+        # Shooting speed HERE WHY?
+        if self._last_attack_timer < shooting_speed:
             return
-        print(self, 'attacks', self.target, 
+        print(self, 'ESTIMATED attack', self.target, 
               'hp:', self.target.hp, '-', damage, '=', self.target.hp-damage)
         
         self._last_attack_timer = 0
-        self.target._take_hit(self, damage)
-            
+        direction = (self.active_cell[0] - self.x, self.active_cell[1] - self.y)  # направление стрельбы, например, вправо
+        initial_pos = (self.active_cell[0]+direction[0], self.active_cell[1]+direction[1])
+        # self.weapon.shoot(direction, initial_pos)
+        self.weapon.shoot(direction, self.weapon.pos)
+        # if bullet:
+        #     Bullet.bullets.append(bullet)            
     
     def look_forward(self):
         dir_x = self.active_cell[0] - self.x
@@ -351,7 +375,8 @@ class NPC(Actor):
                     else:
                         break
                     check_cell = (check_cell[0]+dir_x, check_cell[1]+dir_y)
-        sight.remove((self.x, self.y))
+        if (self.x, self.y) in sight:
+            sight.remove((self.x, self.y))
         return sight
 
     

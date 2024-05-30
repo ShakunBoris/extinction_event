@@ -5,6 +5,8 @@ from eevent.settings import *
 from eevent.actors import *
 from eevent.objects import *
 
+# TODO MOVE AROUND TO SEARCH WHEN LOST SEARCH_TARGET 
+# TODO STEP OVER DEAD BODIES SKIP THEM WHEN SEARCHING PATH. SKIP INVISIBLE AND DEAD TARGETS
 
 # HELPERS 
 def grid():
@@ -134,6 +136,9 @@ class Game:
             for npc in NPC.npcs:
                 npc.update(dt)
 
+            for bullet in Bullet.bullets:
+                bullet.update(dt)
+                
             '''TELEPORT TO POINT'''
             if MOUSE_CONTROL == True :
                 self.player.pos = (mouse_down_pos[0], mouse_down_pos[1])
@@ -165,6 +170,10 @@ class Game:
                 screen.blit(*b)
             for _ in Object.objects:
                 screen.blit(_.image, (_.x, _.y)) # _.create()
+            
+            for bullet in Bullet.bullets:
+                bullet.draw()
+                
             self.eric.draw()
             self.player.draw()
             # self.dylan.draw()
@@ -258,7 +267,7 @@ game = Game()
 
 
 # Eric Harris and Dylan Klebold
-check_fix_spawn_pos()
+# check_fix_spawn_pos()
 
 music.play('soundtrack')
 
@@ -287,8 +296,10 @@ def on_key_down(key):
                     Player.players.clear()
                     NPC.npcs.clear()
                     Weapon.weapons.clear()
+                    Bullet.bullets.clear()
                     Loot.all_loot.clear()
                     Object.objects.clear()
+                    
                     game = Game()
                     game.is_running = True
                 for n in NPC.npcs:

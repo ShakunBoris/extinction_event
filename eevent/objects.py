@@ -2,11 +2,12 @@ import pgzero
 
 from pgzero.actor import Actor as PGZActor
 from .settings import *
+# from .actors import Actor
 
 class Weapon(PGZActor):
     available_weapons = {
-        'saber': {'damage': 10, 'speed': 1, 'range': 1},
-        'gun': {'damage': 15, 'speed': 1, 'range': 5},
+        'saber': {'damage': 10, 'shooting_speed': 1, 'bullet_speed': 0.1, 'range': 1},
+        'gun': {'damage': 50, 'shooting_speed': 1, 'bullet_speed': 0.1, 'range': 10},
     }
     weapons = []
     def __init__(self, name, *args, **kwargs):
@@ -14,14 +15,64 @@ class Weapon(PGZActor):
         if name in Weapon.available_weapons:
             self.name = name
             self.damage = Weapon.available_weapons[name]['damage']
-            self.speed = Weapon.available_weapons[name]['speed']
+            self.shooting_speed = Weapon.available_weapons[name]['shooting_speed']
+            self.bullet_speed = Weapon.available_weapons[name]['bullet_speed']
             self.range = Weapon.available_weapons[name]['range']
             self.colliding = False
         else:
             raise ValueError(f"Weapon {name} is not available.")
         Weapon.weapons.append(self)
+    
+    def shoot(self, direction, pos):
+        if self.name == 'gun':
+            return Bullet('bullet', 
+                          damage=self.damage, 
+                          range=self.range, bullet_speed=self.bullet_speed, direction=direction, pos=pos)
+        return None
+    
+class Bullet(PGZActor):
+    bullets = []
+    
+    def __init__(self, image, damage, range, bullet_speed, direction, pos, *args, **kwargs):
+        super().__init__(image,anchor=('left', 'top'), *args, **kwargs)
+        self.damage = damage
+        self.range = range
+        self.bullet_speed =bullet_speed
+        self.direction = direction
+        self.pos = pos
+        self.cells_passed = 0
+        self._last_move=0
+        Bullet.bullets.append(self)
 
-# w = Weapon('saber', 'saber')
+    def update(self, dt):
+        self.check_collision()
+        self._last_move += dt
+        if self._last_move >= self.bullet_speed:
+            self.x += self.direction[0] 
+            self.y += self.direction[1] 
+            self.cells_passed += 1
+            self._last_move = 0
+            if self.cells_passed > self.range:
+                self.__del__()
+            self.check_collision()
+        
+    def check_collision(self):
+        from .actors import Actor
+        for actor in Actor.actors:
+            if self.colliderect(actor) and actor.alive:
+                actor._take_hit(None, self.damage)
+                Bullet.bullets.remove(self)
+                return
+        
+        if not (0 <= self.x <= WIDTH and 0 <= self.y <= HEIGHT):
+            Bullet.bullets.remove(self)
+    
+    def draw(self):
+        super().draw()
+    
+    def __del__(self):
+        if self in Bullet.bullets:
+            Bullet.bullets.remove(self)
 
 class Loot:
     all_loot = []

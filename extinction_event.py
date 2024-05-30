@@ -84,7 +84,7 @@ class Game:
         self.dylan.weapon = Weapon('gun', 'gun', pos=self.eric.active_cell, anchor=('left', 'top'))
         
         self.preys = []
-        for i in range(8):
+        for i in range(1):
             row =  random.randint(5,15) 
             column =  random.randint(5,15) 
             if maze[row][column] != 1:

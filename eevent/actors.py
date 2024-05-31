@@ -76,15 +76,15 @@ class Actor(PGZActor):
             self._collect_loot(self.pos[0], self.pos[1])
             return 0
 
-
     def _collect_loot(self, new_x, new_y):
         for loot in Loot.all_loot:
             if loot != self.loot and new_x == loot.x and new_y == loot.y:
                 self.loot.add_items(loot.items)
                 Loot.all_loot.remove(loot)
-                print(f'{self.name} collected {loot.items}')
-
-    
+                for npc in NPC.npcs:
+                    if new_x == npc.x and new_y == npc.y and not npc.alive:
+                        npc.__del__()
+ 
     def _can_move_to(self, new_x, new_y):
         
         for obj in Object.objects:
@@ -214,9 +214,10 @@ class Player(Actor):
         clock.unschedule(self.cycle_animation)
     
     def __del__(self):
+        super().__del__()
         if self in Player.players:
             Player.players.remove(self)
-        super().__del__()
+        
         # print(f'Player {self} deleted')
         
         
@@ -404,7 +405,8 @@ class NPC(Actor):
     
     
     def __del__(self):
+        super().__del__()
         if self in NPC.npcs:
             NPC.npcs.remove(self)
-        super().__del__()
+        
         # print(f'NPC {self} deleted')

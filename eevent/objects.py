@@ -61,7 +61,8 @@ class Bullet(PGZActor):
         for actor in Actor.actors:
             if self.colliderect(actor) and actor.alive:
                 actor._take_hit(None, self.damage)
-                Bullet.bullets.remove(self)
+                if self in Bullet.bullets:
+                    Bullet.bullets.remove(self)
                 return
         
         if not (0 <= self.x <= WIDTH and 0 <= self.y <= HEIGHT):

@@ -137,8 +137,12 @@ class Game:
                 self.win_lose = 1
                 self.is_running = False
                 
+            for npc in copy.copy(self.preys):
+                if npc not in NPC.npcs:
+                    self.preys.remove(npc)
             for npc in NPC.npcs:
                 npc.update(dt)
+
 
             for bullet in Bullet.bullets:
                 bullet.update(dt)

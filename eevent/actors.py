@@ -152,7 +152,6 @@ class Actor(PGZActor):
                 actor._take_hit(self, test_damage) # ADD WEAPON
     
     def _take_hit(self, damager, damage):
-        print(self.name, 'takes hit')
         if self.hp > 0:
             self.hp -= damage
         if self.hp <= 0:
@@ -243,6 +242,19 @@ class NPC(Actor):
         #     if end != (row, column):
         #         maze_object_actors[row][column] = 1
         self.path = astar(start, end, maze_object_actors)
+    
+    def _calculate_new_runaway_path(self, exclude_cells):
+        global maze
+        start = (int(self.y // TILE_SIZE), int(self.x // TILE_SIZE))
+        x = random.randint(0, 31)
+        y = random.randint(0, 31)
+        end = (x, y)
+        maze_object_actors = copy.deepcopy(maze)
+        for cell in exclude_cells:
+            row, column = int(cell[1]//TILE_SIZE),  int(cell[0]//TILE_SIZE)
+            if end != (row, column):
+                maze_object_actors[row][column] = 1
+        self.path = astar(start, end, maze_object_actors)
         
     def revive(self):
         self.alive = True
@@ -315,6 +327,7 @@ class NPC(Actor):
                     self._calculate_new_path_to(self.target.pos)
                 # has target but lost sight to it. focuses on new one
                 elif a.pos in self.sight and self.target != None and self.target.pos not in self.sight:
+                    self.search_target = None
                     self.target = a
                     self._calculate_new_path_to(self.target.pos)
                 # has target and still sees it
@@ -322,15 +335,16 @@ class NPC(Actor):
                     self.target = a
                     # self.attack()
                     self.shoot()
-                    if self.timer >= 2:
-                        self.timer = 0
-                        self._calculate_new_path_to(self.target.pos)
+                    # if self.timer >= 2:
+                    #     self.timer = 0
+                    #     self._calculate_new_path_to(self.target.pos)
                 # has target but loses it. sets the search_target
                 elif self.target != None and self.target.pos not in self.sight:
                     self.search_target = self.target.pos
                     self.target = None
                     self._calculate_new_path_to(self.search_target)
         if self.prey:
+            
             for a in Actor.actors:
                 if a == self:
                     continue
@@ -338,8 +352,19 @@ class NPC(Actor):
                     continue
                 if not a.alive:
                     continue
-                if a.pos in self.sight:
-                    pass
+                if a.pos in self.sight and hasattr(a, 'sight'):
+                    if self.path == [] or self.path == None:
+                        # print('sees threat doesnt have path')
+                        self._calculate_new_runaway_path(a.sight)
+                    else: 
+                        # print('sees threat HAS path')
+                        path_in_coords = set()
+                        for p in self.path[1:]:
+                            path_in_coords.add((p[1]*TILE_SIZE, p[0]*TILE_SIZE))
+                        if path_in_coords.intersection(a.sight) != set():
+                            # print(f'prey.pos: {self.pos}, intersection: {path_in_coords.intersection(a.sight)}')
+                            # print('BUILDS NEW PATH')
+                            self._calculate_new_runaway_path(a.sight)
                     # calculate new path in opposite direction
 
     # def attack(self):
@@ -373,8 +398,8 @@ class NPC(Actor):
         # Shooting speed HERE WHY?
         if self._last_attack_timer < shooting_speed:
             return
-        print(self, 'ESTIMATED attack', self.target, 
-              'hp:', self.target.hp, '-', damage, '=', self.target.hp-damage)
+        # print(self, 'ESTIMATED attack', self.target, 
+        #       'hp:', self.target.hp, '-', damage, '=', self.target.hp-damage)
         
         self._last_attack_timer = 0
         direction = (self.active_cell[0] - self.x, self.active_cell[1] - self.y)  # направление стрельбы, например, вправо

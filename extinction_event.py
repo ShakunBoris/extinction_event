@@ -21,7 +21,7 @@ def grid():
 
 def helper_draw_enemy_paths():
     for npc in NPC.npcs:
-        if npc.hunter and npc.path and (npc.path != [] or npc.path != None):
+        if  npc.path and (npc.path != [] or npc.path != None):
             color = {'eric': 'green','dylan':'purple'}
             for cell in npc.path:
                 r = Rect(cell[1] * TILE_SIZE, cell[0] * TILE_SIZE, TILE_SIZE-1, TILE_SIZE-1)
@@ -71,30 +71,37 @@ class Game:
         
         self.load_maze_blits_objects()  
         
-        self.player = Player('pirate', hp=2000,
+        self.player = Player('pirate', hp=100,
                 alive=True, 
                 anchor=('left', 'top'), pos=(1 * TILE_SIZE, 1 * TILE_SIZE), 
                 loot={'money': 50})
         
         self.eric = NPC('eric', alive=True, hunter=True, 
-             anchor=('left', 'top'), pos=(1 * TILE_SIZE, 21 * TILE_SIZE))
+             anchor=('left', 'top'), pos=(16 * TILE_SIZE, 21 * TILE_SIZE))
         self.eric.weapon = Weapon('gun', 'gun', pos=self.eric.active_cell, anchor=('left', 'top'))
         self.dylan = NPC('dylan', alive=True, hunter=True, 
             anchor=('left', 'top'), pos=(16 * TILE_SIZE, 3 * TILE_SIZE))
         self.dylan.weapon = Weapon('gun', 'gun', pos=self.eric.active_cell, anchor=('left', 'top'))
         
         self.preys = []
-        for i in range(1):
+        self.generate_preys(4)
+        # self.test_npc = NPC('prey', alive=True, hunter=False, prey=True, hp=2000,
+        #                         anchor=('left', 'top'), 
+        #                         pos=(12 * TILE_SIZE, 21 * TILE_SIZE))
+        # self.test_npc.weapon = None
+        # self.preys.append(self.test_npc)
+        
+    def generate_preys(self, n_preys):
+        for i in range(n_preys):
             row =  random.randint(5,15) 
             column =  random.randint(5,15) 
             if maze[row][column] != 1:
-                npc = NPC('prey', alive=True, hunter=False, prey=True,
+                npc = NPC('prey', alive=True, hunter=False, prey=True, hp=2000,
                                 anchor=('left', 'top'), 
                                 pos=(column * TILE_SIZE, row * TILE_SIZE))
                 npc.weapon = None
                 self.preys.append(npc)
-        
-    
+                
     def load_maze_blits_objects(self):
         for row in range(len(maze)):
             for column in range(len(maze[row])):
@@ -136,7 +143,10 @@ class Game:
             if self.player.loot.items['money'] >= self.xbox_price:
                 self.win_lose = 1
                 self.is_running = False
-                
+            elif self.timer >60:
+                self.win_lose = -1
+                self.is_running = False
+            
             for npc in copy.copy(self.preys):
                 if npc not in NPC.npcs:
                     self.preys.remove(npc)
@@ -231,6 +241,8 @@ class Game:
                 sounds.chop.play()
             elif keyboard.x:
                 self.player.scream()
+            # elif keyboard.f:
+            #     self.test_npc.pos = (mouse_down_pos[0], mouse_down_pos[1])
     
     def draw_hps(self):
         for a in Actor.actors:
@@ -247,8 +259,8 @@ class Game:
             screen.draw.text(f'{k}: {v}', (320, 64 + line*TILE_SIZE), color='white')
             line +=1
         screen.draw.text(f'XBOX price \n+ inflation: \n{self.xbox_price:.2f}', (320, 64 + line*TILE_SIZE), color='blue')
-        screen.draw.text(f'eric target: {self.eric.target}', (320, 128 + line*TILE_SIZE), color='blue')
-        screen.draw.text(f'eric search target: {self.eric.search_target}', (320, 160 + line*TILE_SIZE), color='blue')
+        # screen.draw.text(f'eric target: {self.eric.target}', (320, 128 + line*TILE_SIZE), color='blue')
+        # screen.draw.text(f'eric search target: {self.eric.search_target}', (320, 160 + line*TILE_SIZE), color='blue')
         
     def draw_menu(self):
 
@@ -260,8 +272,12 @@ class Game:
         screen.draw.text('controls:\nq-menu\narrows-move around\nz-hit\nx-bring hunter\' attention', (0,0))
         screen.draw.text('help eric and dylan to find their friends', (0,128))
         
-        if self.win_lose == 1:
-            screen.draw.text('YOU WIN', (128, 192), color='red',  fontsize=64)
+        match self.win_lose:
+            case 1:
+                screen.draw.text(f'YOU WIN with \n {self.player.loot.items['money']}$', 
+                                 (128, 192), color='red',  fontsize=64)
+            case -1:
+                screen.draw.text('YOU LOST', (128, 192), color='red',  fontsize=64)
             
     def __del__(self):
         pass
@@ -324,12 +340,12 @@ def on_key_down(key):
         match key:
             case keys.Q:
                 print(f'GAME PAUSED')
-                print('actors', Actor.actors)
-                print('objects', Object.objects)
-                print(len(Actor.actors))
-                print(len(Object.objects))
-                for n in NPC.npcs:
-                    print(f'{n.name} \n hunter: {n.hunter} \n prey:{n.prey}')
+                # print('actors', Actor.actors)
+                # print('objects', Object.objects)
+                # print(len(Actor.actors))
+                # print(len(Object.objects))
+                # for n in NPC.npcs:
+                #     print(f'{n.name} \n hunter: {n.hunter} \n prey:{n.prey}')
                     
                 for npc in NPC.npcs:
                     npc.die()

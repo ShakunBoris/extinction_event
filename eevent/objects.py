@@ -7,7 +7,7 @@ from .settings import *
 class Weapon(PGZActor):
     available_weapons = {
         'saber': {'damage': 10, 'shooting_speed': 1, 'bullet_speed': 0.1, 'range': 1},
-        'gun': {'damage': 50, 'shooting_speed': 1, 'bullet_speed': 0.1, 'range': 10},
+        'gun': {'damage': 25, 'shooting_speed': 1, 'bullet_speed': 0.1, 'range': 7},
     }
     weapons = []
     def __init__(self, name, *args, **kwargs):

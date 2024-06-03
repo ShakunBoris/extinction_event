@@ -9,6 +9,8 @@ from eevent.objects import *
 # TODO STEP OVER DEAD BODIES SKIP THEM WHEN SEARCHING PATH. SKIP INVISIBLE AND DEAD TARGETS
 
 # HELPERS 
+
+
 def grid():
 
     for i in range(0, HEIGHT, 16):

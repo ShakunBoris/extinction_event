@@ -1,0 +1,1 @@
+print(f'{__package__} EEVENT INIT')

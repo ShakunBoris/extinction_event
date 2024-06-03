@@ -1,6 +1,11 @@
-l1 = [(1,2), (1,3), (1,4)]
-l2 = [(1,2), (2,3), (2,4)]
-print(set(l1).intersection(l2))
+import  random as rnd
+class T:
+    def __init__(self, name) -> None:
+        self.name = name
+        
+a = T('a')
+b = T('b')
+print(__package__)
 # class Actor:
 #     actors = []
     

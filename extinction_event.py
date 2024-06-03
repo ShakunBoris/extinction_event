@@ -61,6 +61,7 @@ def check_fix_spawn_pos():
 class Game:
     def __init__(self):
         self.timer = 0
+        self.time_limit = 60
         self._is_running = False     
         self.win_lose = 0
         self.blits = [] # objects are then loaded separately 
@@ -96,7 +97,7 @@ class Game:
             row =  random.randint(5,15) 
             column =  random.randint(5,15) 
             if maze[row][column] != 1:
-                npc = NPC('prey', alive=True, hunter=False, prey=True, hp=2000,
+                npc = NPC('prey', alive=True, hunter=False, prey=True, hp=100,
                                 anchor=('left', 'top'), 
                                 pos=(column * TILE_SIZE, row * TILE_SIZE))
                 npc.weapon = None
@@ -143,7 +144,7 @@ class Game:
             if self.player.loot.items['money'] >= self.xbox_price:
                 self.win_lose = 1
                 self.is_running = False
-            elif self.timer >60:
+            elif self.timer >self.time_limit:
                 self.win_lose = -1
                 self.is_running = False
             
@@ -251,7 +252,7 @@ class Game:
                 color='red', fontsize=16, anchor=(0, 0)) 
             
     def draw_texts(self):
-        screen.draw.text(f"Time passed: {self.timer:.2f}", (320, 16), color='blue')   
+        screen.draw.text(f"Time passed: {self.time_limit - self.timer:.2f}", (320, 16), color='blue')   
         screen.draw.text(f"q = EXIT to MENU", (320, 32), color='blue')
         screen.draw.text(f'LOOT:', (320, 64), color='blue')
         line = 1

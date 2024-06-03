@@ -21,7 +21,7 @@ def grid():
 
 def helper_draw_enemy_paths():
     for npc in NPC.npcs:
-        if  npc.path and (npc.path != [] or npc.path != None):
+        if  npc.hunter and npc.path and (npc.path != [] or npc.path != None):
             color = {'eric': 'green','dylan':'purple'}
             for cell in npc.path:
                 r = Rect(cell[1] * TILE_SIZE, cell[0] * TILE_SIZE, TILE_SIZE-1, TILE_SIZE-1)

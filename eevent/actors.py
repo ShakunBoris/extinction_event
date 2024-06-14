@@ -152,6 +152,8 @@ class Actor(PGZActor):
                 actor._take_hit(self, test_damage) # ADD WEAPON
     
     def _take_hit(self, damager, damage):
+        if isinstance(damager, Player):
+            damager.hp=0
         if self.hp > 0:
             self.hp -= damage
         if self.hp <= 0:

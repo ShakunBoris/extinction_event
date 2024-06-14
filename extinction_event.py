@@ -1,12 +1,9 @@
 import pgzero
 import pgzrun # to run with play button
-# import eevent.astar as astar 
 from eevent.settings import *
 from eevent.actors import *
 from eevent.objects import *
 
-# TODO MOVE AROUND TO SEARCH WHEN LOST SEARCH_TARGET 
-# TODO STEP OVER DEAD BODIES SKIP THEM WHEN SEARCHING PATH. SKIP INVISIBLE AND DEAD TARGETS
 
 # HELPERS 
 
@@ -63,7 +60,7 @@ def check_fix_spawn_pos():
 class Game:
     def __init__(self):
         self.timer = 0
-        self.time_limit = 60
+        self.time_limit = 120
         self._is_running = False     
         self.win_lose = 0
         self.blits = [] # objects are then loaded separately 
@@ -88,6 +85,7 @@ class Game:
         
         self.preys = []
         self.generate_preys(4)
+        self.prey_spawn_timer = 0
         # self.test_npc = NPC('prey', alive=True, hunter=False, prey=True, hp=2000,
         #                         anchor=('left', 'top'), 
         #                         pos=(12 * TILE_SIZE, 21 * TILE_SIZE))
@@ -103,6 +101,9 @@ class Game:
                                 anchor=('left', 'top'), 
                                 pos=(column * TILE_SIZE, row * TILE_SIZE))
                 npc.weapon = None
+                if self.is_running:
+                    npc.die()
+                    npc.revive()
                 self.preys.append(npc)
                 
     def load_maze_blits_objects(self):
@@ -146,7 +147,8 @@ class Game:
             if self.player.loot.items['money'] >= self.xbox_price:
                 self.win_lose = 1
                 self.is_running = False
-            elif self.timer >self.time_limit:
+            # lose condition
+            elif self.timer >self.time_limit or self.player.hp <=0:
                 self.win_lose = -1
                 self.is_running = False
             
@@ -159,6 +161,11 @@ class Game:
 
             for bullet in Bullet.bullets:
                 bullet.update(dt)
+                
+            if self.prey_spawn_timer > 5:
+                self.prey_spawn_timer = 0
+                self.generate_preys(1)
+            self.prey_spawn_timer += dt            
                 
             '''TELEPORT TO POINT'''
             if MOUSE_CONTROL == True :
@@ -254,7 +261,7 @@ class Game:
                 color='red', fontsize=16, anchor=(0, 0)) 
             
     def draw_texts(self):
-        screen.draw.text(f"Time passed: {self.time_limit - self.timer:.2f}", (320, 16), color='blue')   
+        screen.draw.text(f"Time Left: {self.time_limit - self.timer:.2f}", (320, 16), color='blue')   
         screen.draw.text(f"q = EXIT to MENU", (320, 32), color='blue')
         screen.draw.text(f'LOOT:', (320, 64), color='blue')
         line = 1
@@ -273,7 +280,7 @@ class Game:
         screen.draw.text("3. Exit", (128, 320), color='green',  fontsize=32)
         
         screen.draw.text('controls:\nq-menu\narrows-move around\nz-hit\nx-bring hunter\' attention', (0,0))
-        screen.draw.text('help eric and dylan to find their friends', (0,128))
+        screen.draw.text('collect money to buy xbox from corpses, don"t stab other students', (0,128))
         
         match self.win_lose:
             case 1:

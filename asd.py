@@ -1,11 +1,5 @@
-import  random as rnd
-class T:
-    def __init__(self, name) -> None:
-        self.name = name
-        
-a = T('a')
-b = T('b')
-print(__package__)
+print(8%5)
+
 # class Actor:
 #     actors = []
     

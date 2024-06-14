@@ -66,7 +66,8 @@ class Bullet(PGZActor):
                 return
         
         if not (0 <= self.x <= WIDTH and 0 <= self.y <= HEIGHT):
-            Bullet.bullets.remove(self)
+            if self in Bullet.bullets:
+                Bullet.bullets.remove(self)
     
     def draw(self):
         super().draw()
@@ -80,7 +81,7 @@ class Loot:
 
     def __init__(self, x = 360, y = 360, items=None):
         if items is None or not isinstance(items, dict):
-            items = {'money': random.randint(0,300)}  # По умолчанию, если items не задан
+            items = {'money': random.randint(0,50)}  # По умолчанию, если items не задан
 
         self.x = x
         self.y = y

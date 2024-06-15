@@ -7,7 +7,7 @@ from .settings import *
 class Weapon(PGZActor):
     available_weapons = {
         'saber': {'damage': 10, 'shooting_speed': 1, 'bullet_speed': 0.1, 'range': 1},
-        'gun': {'damage': 25, 'shooting_speed': 1, 'bullet_speed': 0.1, 'range': 7},
+        'gun': {'damage': 50, 'shooting_speed': 1, 'bullet_speed': 0.1, 'range': 7},
     }
     weapons = []
     def __init__(self, name, *args, **kwargs):
@@ -81,7 +81,7 @@ class Loot:
 
     def __init__(self, x = 360, y = 360, items=None):
         if items is None or not isinstance(items, dict):
-            items = {'money': random.randint(0,50)}  # По умолчанию, если items не задан
+            items = {'money': random.randint(50,150)}  # По умолчанию, если items не задан
 
         self.x = x
         self.y = y

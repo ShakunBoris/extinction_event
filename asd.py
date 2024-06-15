@@ -1,4 +1,7 @@
-print(8%5)
+d1 = {'a': 1, 'b': 2}
+d2= {'b': 2, 'c': 2}
+d = d1.copy().update(d2)
+print(d)
 
 # class Actor:
 #     actors = []

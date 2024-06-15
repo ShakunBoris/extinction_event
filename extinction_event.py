@@ -148,7 +148,9 @@ class Game:
                 self.win_lose = 1
                 self.is_running = False
             # lose condition
-            elif self.timer >self.time_limit or self.player.hp <=0:
+            elif self.timer >self.time_limit or \
+                    self.player.hp <=0 or \
+                        (self.eric.alive == False and self.dylan.alive==False):
                 self.win_lose = -1
                 self.is_running = False
             
@@ -269,8 +271,15 @@ class Game:
             screen.draw.text(f'{k}: {v}', (320, 64 + line*TILE_SIZE), color='white')
             line +=1
         screen.draw.text(f'XBOX price \n+ inflation: \n{self.xbox_price:.2f}', (320, 64 + line*TILE_SIZE), color='blue')
-        # screen.draw.text(f'eric target: {self.eric.target}', (320, 128 + line*TILE_SIZE), color='blue')
-        # screen.draw.text(f'eric search target: {self.eric.search_target}', (320, 160 + line*TILE_SIZE), color='blue')
+        line +=3
+        screen.draw.text(f'Eric&Dylan loot:', (320, 64 + line*TILE_SIZE), color='White')
+        line +=1
+        d1 = self.eric.loot.items
+        d2 = self.dylan.loot.items
+        common_loot = {k: d1.get(k, 0) + d2.get(k, 0) for k in d1.keys() | d2.keys()}
+        for k, v in common_loot.items():
+            screen.draw.text(f'{k}: {v}', (320, 64 + line*TILE_SIZE), color='white')
+            line +=1
         
     def draw_menu(self):
 
@@ -280,7 +289,11 @@ class Game:
         screen.draw.text("3. Exit", (128, 320), color='green',  fontsize=32)
         
         screen.draw.text('controls:\nq-menu\narrows-move around\nz-hit\nx-bring hunter\' attention', (0,0))
-        screen.draw.text('collect money to buy xbox from corpses, don"t stab other students', (0,128))
+        screen.draw.text('''
+                         collect money to buy xbox from corpses,
+                         don"t stab other students,
+                         bring eric and dylan attention 
+                         to where students are''', (0,128))
         
         match self.win_lose:
             case 1:

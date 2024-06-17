@@ -150,7 +150,11 @@ class Game:
             # lose condition
             elif self.timer >self.time_limit or \
                     self.player.hp <=0 or \
-                        (self.eric.alive == False and self.dylan.alive==False):
+                        (self.eric.alive == False and \
+                            self.dylan.alive==False and 
+                            self.player.loot.items['money'] + 
+                            self.eric.loot.items['money'] + 
+                            self.dylan.loot.items['money'] < self.xbox_price):
                 self.win_lose = -1
                 self.is_running = False
             
